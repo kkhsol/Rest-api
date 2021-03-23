@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="93ba62e7-00e6-4624-b441-b7ccf541f894" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c5d55280-adc6-4533-9390-6609faf520e5" basePath="/rest/v2" >
+		<http:request-connection host="restcountries.eu" />
+	</http:request-config>
+	<flow name="rest-apiFlow" doc:id="3d16291e-9fe1-47b2-a512-dc9e038afd77" >
+		<http:listener doc:name="Listener" doc:id="cc3a1d68-f7f0-406b-b6b4-c2168881f24d" config-ref="HTTP_Listener_config" path="/{uri1}/{uri2}"/>
+		<http:request method="GET" doc:name="Request" doc:id="0d526a3f-9c75-4eef-8c55-a796715dcf3c" config-ref="HTTP_Request_configuration" path="/{uri1}/{uri2}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"uri2" : attributes.uriParams.uri2,
+	"uri1" : attributes.uriParams.uri1
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="10bfa1a8-a9b6-4c5d-b66a-41f5868d529a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(value, index) -> {
+ 			Name:value.name,
+ 		    Region:value.region,
+ 			Population:value.population
+ 		} ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
